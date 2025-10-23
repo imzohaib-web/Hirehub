@@ -1,0 +1,269 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(const MeditationApp());
+}
+
+/// Data model for a single category chip.
+class Category {
+  final String label;
+
+  Category({required this.label});
+}
+
+/// Data model for a single meditation card.
+class MeditationCardData {
+  final String title;
+  final Color color1;
+  final Color color2;
+  final IconData icon;
+
+  MeditationCardData({
+    required this.title,
+    required this.color1,
+    required this.color2,
+    required this.icon,
+  });
+}
+
+/// ViewModel for the DiscoverPage, managing categories and meditation cards state.
+class DiscoverPageViewModel extends ChangeNotifier {
+  final List<Category> _categories = <Category>[
+    Category(label: "Depression"),
+    Category(label: "Baby Sleep"),
+    Category(label: "Relaxation"),
+    Category(label: "Anxiety"),
+    Category(label: "Stress"),
+    Category(label: "Mindfulness"),
+    Category(label: "Focus"),
+  ];
+
+  final List<MeditationCardData> _allMeditationCards = <MeditationCardData>[
+    MeditationCardData(
+      title: "Sleep Meditation",
+      color1: Colors.purpleAccent,
+      color2: Colors.deepPurple,
+      icon: Icons.nightlight_round,
+    ),
+    MeditationCardData(
+      title: "Relaxation",
+      color1: Colors.pinkAccent,
+      color2: Colors.purple,
+      icon: Icons.spa,
+    ),
+    MeditationCardData(
+      title: "Calming Sounds",
+      color1: Colors.tealAccent,
+      color2: Colors.teal,
+      icon: Icons.music_note,
+    ),
+    MeditationCardData(
+      title: "Tips for You",
+      color1: Colors.yellowAccent,
+      color2: Colors.amber,
+      icon: Icons.lightbulb,
+    ),
+    MeditationCardData(
+      title: "Morning Routine",
+      color1: Colors.orangeAccent,
+      color2: Colors.deepOrange,
+      icon: Icons.wb_sunny,
+    ),
+    MeditationCardData(
+      title: "Deep Focus",
+      color1: Colors.blueAccent,
+      color2: Colors.lightBlue,
+      icon: Icons.visibility,
+    ),
+  ];
+
+  String? _selectedCategoryLabel;
+
+  DiscoverPageViewModel() {
+    if (_categories.isNotEmpty) {
+      _selectedCategoryLabel = _categories.first.label;
+    }
+  }
+
+  List<Category> get categories => List<Category>.unmodifiable(_categories);
+  String? get selectedCategoryLabel => _selectedCategoryLabel;
+
+  /// Returns meditation cards, potentially filtered by the selected category.
+  /// (Filtering logic is not implemented in this example but would go here).
+  List<MeditationCardData> get filteredMeditationCards {
+    // In a real application, this would filter based on _selectedCategoryLabel.
+    // For this demonstration, all cards are returned.
+    return List<MeditationCardData>.unmodifiable(_allMeditationCards);
+  }
+
+  void selectCategory(String label) {
+    if (_selectedCategoryLabel != label) {
+      _selectedCategoryLabel = label;
+      notifyListeners();
+    }
+  }
+}
+
+/// A custom chip widget for displaying categories.
+class CategoryChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final ValueChanged<String> onSelected;
+
+  const CategoryChip({
+    super.key,
+    required this.label,
+    this.isSelected = false,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onSelected(label),
+      child: Chip(
+        label: Text(label),
+        backgroundColor: isSelected ? Colors.white24 : Colors.transparent,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : Colors.white70,
+        ),
+        side: const BorderSide(color: Colors.white24),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      ),
+    );
+  }
+}
+
+/// A custom card widget for displaying meditation content.
+class MeditationCard extends StatelessWidget {
+  final MeditationCardData data;
+
+  const MeditationCard({
+    super.key,
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: <Color>[data.color1, data.color2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: <Widget>[
+            Icon(data.icon, color: Colors.white, size: 40),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Text(
+                data.title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The main application widget.
+class MeditationApp extends StatelessWidget {
+  const MeditationApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Meditation App',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0E1630),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+          ),
+          bodyMedium: TextStyle(
+            color: Colors.white70,
+          ),
+        ),
+        appBarTheme: const AppBarTheme(
+          color: Colors.transparent,
+          elevation: 0,
+        ),
+      ),
+      home: ChangeNotifierProvider<DiscoverPageViewModel>(
+        create: (BuildContext context) => DiscoverPageViewModel(),
+        builder: (BuildContext context, Widget? child) => const DiscoverPage(),
+      ),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+/// The Discover page, displaying categories and meditation cards.
+class DiscoverPage extends StatelessWidget {
+  const DiscoverPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Discover",
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        centerTitle: false,
+      ),
+      body: Consumer<DiscoverPageViewModel>(
+        builder: (BuildContext context, DiscoverPageViewModel viewModel, Widget? child) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ListView(
+              children: <Widget>[
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: viewModel.categories.map<Widget>((Category category) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: CategoryChip(
+                          label: category.label,
+                          isSelected: viewModel.selectedCategoryLabel == category.label,
+                          onSelected: (String label) {
+                            viewModel.selectCategory(label);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                ...viewModel.filteredMeditationCards.map<Widget>((MeditationCardData cardData) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: MeditationCard(data: cardData),
+                  );
+                }).toList(),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
